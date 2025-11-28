@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Flavor Scraper</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+h1 { color: #333; }
+textarea, input[type=text] { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 14px; }
+button { padding: 12px 20px; font-size: 16px; background: #0070f3; color: white; border: none; cursor: pointer; }
+button:hover { background: #0051a2; }
+.note { font-size: 13px; color: #555; margin-bottom: 20px; }
+#progress { margin-top: 10px; font-size: 14px; color: #0070f3; }
+</style>
+</head>
+<body>
+<h1>Flavor Scraper</h1>
+
+<form id="scrapeForm">
+    <label>输入网址 (每行一个)：</label><br>
+    <textarea name="urls" placeholder="https://www.justjuice-eliquids.com/&#10;https://www.vapeclub.co.uk/"></textarea>
+
+    <label>品牌：</label><br>
+    <input type="text" name="brand" placeholder="Just Juice">
+
+    <label>口味 (每行一个)：</label><br>
+    <textarea name="flavors" placeholder="Tropical Peach&#10;Raspberry & Grapefruit&#10;Kiwi Cooler"></textarea>
+
+    <div class="note">提示：每个网址只抓取搜索结果的第一个匹配产品页，保证快速返回。</div>
+
+    <button type="submit">开始爬取</button>
+</form>
+
+<div id="progress"></div>
+<div id="results"></div>
+
+<script>
+const form = document.getElementById("scrapeForm");
+const progressDiv = document.getElementById("progress");
+const resultsDiv = document.getElementById("results");
+
+form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    progressDiv.innerText = "正在提交请求...";
+    resultsDiv.innerHTML = "";
+
+    const formData = new FormData(form);
+    const data = new URLSearchParams(formData);
+
+    try {
+        const response = await fetch("/scrape", {
+            method: "POST",
+            body: data
+        });
+
+        if(!response.ok) {
+            progressDiv.innerText = "请求失败，请稍后重试";
+            return;
+        }
+
+        const html = await response.text();
+        resultsDiv.innerHTML = html;
+        progressDiv.innerText = "爬取完成 ✅";
+    } catch(err) {
+        progressDiv.innerText = "爬取出错: " + err;
+    }
+});
+</script>
+</body>
+</html>
